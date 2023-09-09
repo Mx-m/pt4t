@@ -436,6 +436,39 @@ def start_game(gm, tetros):
                         if t_matrix[i][j] != '  ':
                             gm[y + i][x + j] = t_matrix[i][j]
             refresh_game(gm)
+        while end_empty:
+            # Check for empty space underneath
+            for row in range(len(t_matrix)):
+                for col in range(0, len(t_matrix[0])):
+                    if t_matrix[row][col] != '  ':
+                        # Calculate the position of the space directly below the current block
+                        row_below = y + row + 1
+                        col_below = x + col
+                        if gm[row_below][col_below] != '  ':
+                            if gm[row_below][col_below] == '{}':
+                                end_empty = False
+                                break
+                            elif row != len(t_matrix) - 1 and t_matrix[row + 1][col] == '[]':
+                                end_empty = True
+                            elif gm[row_below][col_below] == '[]':
+                                end_empty = False
+                                break
+                if not end_empty:
+                    break
+            if end_empty:
+                # clear the old tetromino
+                for i in range(len(t_matrix)):
+                    for j in range(len(t_matrix[i])):
+                        if t_matrix[i][j] != '  ':
+                            gm[y + i][x + j] = "  "
+                # move down
+                y = y + 1
+                # Update the game matrix with the new tetromino position
+                for i in range(len(t_matrix)):
+                    for j in range(len(t_matrix[i])):
+                        if t_matrix[i][j] != '  ':
+                            gm[y + i][x + j] = t_matrix[i][j]
+                refresh_game(gm)
         print("block down")
         game_start = False
     if y == 1:
@@ -473,4 +506,4 @@ if __name__ == '__main__':
     refresh_game(gm)
     print('\n')
     print('{}{}.game over.{}{}')
-    print('score: ' + str(score*(100*(2-game_speed))))
+    print('score: ' + str(int(score*(100*(2-game_speed)))))
