@@ -170,7 +170,7 @@ def start_game(gm, tetros):
         end_empty = True
         end_empty_left = True
         end_empty_right = True
-        fast = False
+        fast_empty = True
         while empty:
             # Check for empty space underneath
             for row in range(len(t_matrix)):
@@ -230,17 +230,6 @@ def start_game(gm, tetros):
             # Check for user input to rotate the tetromino
             if 'score' in globals():
                 game_speed = 1-(score/difficulty)
-            elif fast:
-                game_speed = 0.5
-                print('fast')
-                if empty:
-                    continue
-                elif not empty:
-                    fast = False
-                    continue
-                else:
-                    fast = False
-                    continue
             else:
                 game_speed = 1
             user_input = get_user_input_with_timeout("move: ", game_speed)
@@ -298,7 +287,39 @@ def start_game(gm, tetros):
                         break
             # if user wants to SLAM block down
             elif user_input == 'v':
-                fast = True
+                while fast_empty:
+                    # Check for empty space underneath
+                    for row in range(len(t_matrix)):
+                        for col in range(0, len(t_matrix[0])):
+                            if t_matrix[row][col] != '  ':
+                                # Calculate the position of the space directly below the current block
+                                row_below = y + row + 1
+                                col_below = x + col
+                                if gm[row_below][col_below] != '  ':
+                                    if gm[row_below][col_below] == '{}':
+                                        fast_empty = False
+                                        break
+                                    elif row != len(t_matrix) - 1 and t_matrix[row + 1][col] == '[]':
+                                        fast_empty = True
+                                    elif gm[row_below][col_below] == '[]':
+                                        fast_empty = False
+                                        break
+                        if not fast_empty:
+                            break
+                    if fast_empty:
+                        # clear the old tetromino
+                        for i in range(len(t_matrix)):
+                            for j in range(len(t_matrix[i])):
+                                if t_matrix[i][j] != '  ':
+                                    gm[y + i][x + j] = "  "
+                        # move down
+                        y = y + 1
+                        # Update the game matrix with the new tetromino position
+                        for i in range(len(t_matrix)):
+                            for j in range(len(t_matrix[i])):
+                                if t_matrix[i][j] != '  ':
+                                    gm[y + i][x + j] = t_matrix[i][j]
+                refresh_game(gm)
             # if user wants to quit
             elif user_input == 'q':
                 game_fail = True
@@ -398,7 +419,6 @@ def start_game(gm, tetros):
             elif user_input == 'q':
                 game_fail = True
                 break
-                # a game by clouds
             # Update the game matrix with the new tetromino position
             for i in range(len(t_matrix)):
                 for j in range(len(t_matrix[i])):
