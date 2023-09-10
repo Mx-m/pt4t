@@ -86,6 +86,7 @@ def end_screen(score):
           ['      HHHHHH      ', 'HHHHHHHHHHHHHHHHHH', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
            'HHHHHHHHHHHHHHHHHH']]
     refresh_game(tm)
+    print('')
     print('by: clouds')
     print('\n')
     print('                                                   {}.GAME OVER.{}')
