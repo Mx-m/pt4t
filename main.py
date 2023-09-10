@@ -2,9 +2,36 @@ import random
 import time
 import faulthandler
 import numpy as np
+
 faulthandler.enable()
 import sys
 import select
+
+
+
+def title_screen():
+    print('\n\n')
+    tm = [['[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '      [][][]      ',  '[][][][][][][][][]'],
+          ['[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '      [][][]      ',  '[][][][][][][][][]'],
+          ['      [][][]      ',  '[][][]            ',  '      [][][]      ',  '[][][]      [][][]',  '      [][][]      ',  '[][][]            '],
+          ['      [][][]      ',  '[][][]            ',  '      [][][]      ',  '[][][]      [][][]',  '      [][][]      ',  '[][][]            '],
+          ['      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ',  'HHHHHH            ',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  '            HHHHHH'],
+          ['      HHHHHH      ',  'HHHHHH            ',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  '            HHHHHH'],
+          ['      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH']]
+    refresh_game(tm)
+    print('\n')
+    print('by: clouds')
+    print('\n')
+    print('                                                ENTER ANY KEY TO START')
+    print('\n\n\n')
+    print("Tetris ® & © 1985~2023 Tetris Holding.\nTetris logos, Tetris theme song and Tetriminos are trademarks of Tetris Holding.\nThe Tetris trade dress is owned by Tetris Holding. Licensed to The Tetris Company.\nTetris Game Design by Alexey Pajitnov.\nTetris Logo Design by Roger Dean.\nAll Rights Reserved.\nAll other trademarks are the property of their respective owners.")
+    any_key = input('')
+    return True
+
+
 
 
 def get_user_input_with_timeout(prompt, timeout):
@@ -15,8 +42,6 @@ def get_user_input_with_timeout(prompt, timeout):
 
     if rlist:
         user_input = sys.stdin.readline().strip()
-    else:
-        print("Timeout reached. No input received.")
 
     return user_input
 
@@ -44,7 +69,7 @@ def init_tetrominos():
                           [b],
                           [b]]]
     o = [[[b, b],
-         [b, b]]]
+          [b, b]]]
     t = [[[x, b, x],
           [b, b, b]],
          [[b, x],
@@ -141,9 +166,10 @@ def reverse_tetromino(t_dict, state):
     return rotated_matrix, state
 
 
-def start_game(gm, tetros):
+def start_game(gm, tetros, something_stored, stored, count_stored, temp):
     global game_fail
     global score
+    something_stored_signal = False
     user_moving = True
     difficulty = 75
     if 'score' in globals():
@@ -152,11 +178,15 @@ def start_game(gm, tetros):
         game_speed = 1
     game_start = True
     tetro_list = ['i', 'o', 't', 'j', 'l', 's', 'z']
-    n = random.randint(0, 6)
-    st = random.randint(0, len(tetros[tetro_list[n]]) - 1)  # randomize later
+    if count_stored == 1:
+        n = temp[0]
+        st = temp[1]
+    else:
+        n = random.randint(0, 6)
+        st = random.randint(0, len(tetros[tetro_list[n]]) - 1)  # randomize later
     t_matrix = tetros[tetro_list[n]][st]  # create initial block
     y = 1
-    x = random.randint(1,11-len(t_matrix[0]))
+    x = random.randint(1, 11 - len(t_matrix[0]))
     for i in range(len(t_matrix)):  # fill out game board initially
         for j in range(len(t_matrix[i])):
             if t_matrix[i][j] != '  ':
@@ -183,7 +213,7 @@ def start_game(gm, tetros):
                             if gm[row_below][col_below] == '{}':
                                 empty = False
                                 break
-                            elif row != len(t_matrix)-1 and t_matrix[row + 1][col] == '[]':
+                            elif row != len(t_matrix) - 1 and t_matrix[row + 1][col] == '[]':
                                 empty = True
                             elif gm[row_below][col_below] == '[]':
                                 empty = False
@@ -194,7 +224,8 @@ def start_game(gm, tetros):
             for row in range(len(t_matrix)):
                 for col in range(len(t_matrix[0])):
                     if t_matrix[row][col] != '  ':
-                        if x - 1 >= 1 and (gm[y + row][x + col - 1] == '  ' or (col - 1 >= 0 and t_matrix[row][col - 1] == '[]')):
+                        if x - 1 >= 1 and (
+                                gm[y + row][x + col - 1] == '  ' or (col - 1 >= 0 and t_matrix[row][col - 1] == '[]')):
                             empty_left = True
                         else:
                             empty_left = False
@@ -205,8 +236,9 @@ def start_game(gm, tetros):
             for row in range(len(t_matrix)):
                 for col in range(len(t_matrix[0]) - 1, -1, -1):
                     if t_matrix[row][col] != '  ':
-                        if x + col + 1 < len(gm[0])-1 and (
-                                gm[y + row][x + col + 1] == '  ' or (col + 1 <= len(t_matrix[0])-1 and t_matrix[row][col + 1] == '[]')):
+                        if x + col + 1 < len(gm[0]) - 1 and (
+                                gm[y + row][x + col + 1] == '  ' or (
+                                col + 1 <= len(t_matrix[0]) - 1 and t_matrix[row][col + 1] == '[]')):
                             empty_right = True
                         else:
                             empty_right = False
@@ -229,12 +261,12 @@ def start_game(gm, tetros):
                         gm[y + i][x + j] = t_matrix[i][j]
             # Check for user input to rotate the tetromino
             if 'score' in globals():
-                game_speed = 1-(score/difficulty)
+                game_speed = 1 - (score / difficulty)
             else:
                 game_speed = 1
             user_input = get_user_input_with_timeout("move: ", game_speed)
             # if user wants to turn
-            if user_input == 'w' and (y + len(t_matrix)) < (len(gm) - 1) and x + len(t_matrix)-1 < len(gm[0])-1:
+            if user_input == 'w' and (y + len(t_matrix)) < (len(gm) - 1) and x + len(t_matrix) - 1 < len(gm[0]) - 1:
                 for i in range(len(t_matrix)):
                     for j in range(len(t_matrix[i])):
                         if t_matrix[i][j] != '  ':
@@ -245,7 +277,7 @@ def start_game(gm, tetros):
                 for i in range(len(t_matrix)):
                     for j in range(len(t_matrix[i])):
                         if t_matrix[i][j] != '  ':
-                            if gm[y+i][x+j] != '  ':
+                            if gm[y + i][x + j] != '  ':
                                 turn_good = False
                                 tetro_and_state = reverse_tetromino(tetros[tetro_list[n]], st)
                                 t_matrix = tetro_and_state[0]
@@ -263,7 +295,7 @@ def start_game(gm, tetros):
                 for i in range(len(t_matrix)):
                     for j in range(len(t_matrix[i])):
                         if t_matrix[i][j] != '  ':
-                            if gm[y+i][x+j] != '  ':
+                            if gm[y + i][x + j] != '  ':
                                 empty_left = False
                                 x = x + 1
                                 break
@@ -279,7 +311,7 @@ def start_game(gm, tetros):
                 for i in range(len(t_matrix)):
                     for j in range(len(t_matrix[i])):
                         if t_matrix[i][j] != '  ':
-                            if gm[y+i][x+j] != '  ':
+                            if gm[y + i][x + j] != '  ':
                                 empty_left = False
                                 x = x - 1
                                 break
@@ -320,6 +352,27 @@ def start_game(gm, tetros):
                                 if t_matrix[i][j] != '  ':
                                     gm[y + i][x + j] = t_matrix[i][j]
                 refresh_game(gm)
+            # store block
+            elif user_input == 'r':
+                if count_stored == 0:
+                    if something_stored:
+                        for i in range(len(t_matrix)):
+                            for j in range(len(t_matrix[i])):
+                                if t_matrix[i][j] != '  ':
+                                    gm[y + i][x + j] = "  "
+                        temp = stored
+                        stored = [n, st]
+                        something_stored_signal = True
+                        count_stored = 1
+                    else:
+                        for i in range(len(t_matrix)):
+                            for j in range(len(t_matrix[i])):
+                                if t_matrix[i][j] != '  ':
+                                    gm[y + i][x + j] = "  "
+                        stored = [n, st]
+                        something_stored = True
+                        something_stored_signal = True
+                    break
             # if user wants to quit
             elif user_input == 'q':
                 game_fail = True
@@ -331,6 +384,8 @@ def start_game(gm, tetros):
                     if t_matrix[i][j] != '  ':
                         gm[y + i][x + j] = t_matrix[i][j]
             refresh_game(gm)
+        if something_stored_signal:
+            break
         if game_fail:
             break
         t_end = time.time() + game_speed
@@ -490,6 +545,7 @@ def start_game(gm, tetros):
                             gm[y + i][x + j] = t_matrix[i][j]
                 refresh_game(gm)
         print("block down")
+        count_stored = 0
         game_start = False
     if y == 1:
         game_fail = True
@@ -503,10 +559,11 @@ def start_game(gm, tetros):
             gm[j] = [br, x, x, x, x, x, x, x, x, x, x, br]
             i = j
             while i > 1:
-                gm[i] = gm[i-1]
+                gm[i] = gm[i - 1]
                 gm[i - 1] = [br, x, x, x, x, x, x, x, x, x, x, br]
                 i = i - 1
-    return game_speed
+    return game_speed, something_stored, stored, count_stored, temp
+
 
 def refresh_game(gm):
     gm_display = np.array(gm)
@@ -515,15 +572,27 @@ def refresh_game(gm):
 
 
 if __name__ == '__main__':
-    game_fail = False
-    tetros = init_tetrominos()
-    gm = init_game()
-    start_game(gm, tetros)
-    score = 0
-    game_speed = 1
-    while game_fail == False:
-        game_speed = start_game(gm, tetros)
-    refresh_game(gm)
-    print('\n')
-    print('{}{}.game over.{}{}')
-    print('score: ' + str(int(score*(100*(2-game_speed)))))
+    Return = title_screen()
+    if Return:
+        game_fail = False
+        count_stored = 0
+        global something_stored
+        something_stored = False
+        global stored
+        temp = []
+        stored = ''
+        tetros = init_tetrominos()
+        gm = init_game()
+        score = 0
+        game_speed = 1
+        while game_fail == False:
+            game_data = start_game(gm, tetros, something_stored, stored, count_stored, temp)
+            game_speed = game_data[0]
+            something_stored = game_data[1]
+            stored = game_data[2]
+            count_stored = game_data[3]
+            temp = game_data[4]
+        refresh_game(gm)
+        print('\n')
+        print('{}{}.game over.{}{}')
+        print('score: ' + str(int(score * (100 * (2 - game_speed)))))
