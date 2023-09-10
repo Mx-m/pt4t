@@ -91,7 +91,7 @@ def end_screen(score):
     print('\n')
     print('                                                   {}.GAME OVER.{}')
     print('                                             THANK YOU FOR PLAYING TETRIS')
-    print('                                                  your score was: ' + str(score))
+    print('                                                 your score was: ' + str(score))
     print('\n')
     playsound('game_over.mp3')
 
