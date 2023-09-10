@@ -632,21 +632,41 @@ def refresh_game(gm):
     for line in gm_display:
         print('  '.join(map(str, line)))
 
+def play_audio():
+    global stop_stream
+    stop_stream = False
+    # Define the WAV file to play
+    file_path = "tetris.wav"
+    # Initialize PyAudio
+    p = pyaudio.PyAudio()
+    # Open the WAV file
+    wf = wave.open(file_path, 'rb')
+    # Get the audio stream parameters
+    channels = wf.getnchannels()
+    sample_width = wf.getsampwidth()
+    frame_rate = wf.getframerate()
+    # Create an audio stream
+    stream = p.open(format=p.get_format_from_width(sample_width),
+                    channels=channels,
+                    rate=frame_rate,
+                    output=True)
+    while not stop_stream:
+        data = wf.readframes(1024)  # Read audio data in chunks
+        if not data:
+            wf.rewind()  # Reset the file position to the beginning when it reaches the end
+            continue  # Restart the audio if it has reached the end
+        stream.write(data)  # Play the audio data
+    if stop_stream:
+        stream.stop_stream()
+        stream.close()
+        wf.close()
+        p.terminate()
 
 if __name__ == '__main__':
     Return = title_screen()
     if Return:
-        wf = wave.open('tetris.wav', 'rb')
-        p = pyaudio.PyAudio()
-        def callback(in_data, frame_count, time_info, status):
-            data = wf.readframes(frame_count)
-            return (data, pyaudio.paContinue)
-        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                        channels=wf.getnchannels(),
-                        rate=wf.getframerate(),
-                        output=True,
-                        stream_callback=callback)
-        stream.start_stream()
+        audio_thread = threading.Thread(target=play_audio)
+        audio_thread.start()
         game_fail = False
         count_stored = 0
         global something_stored
@@ -665,10 +685,8 @@ if __name__ == '__main__':
             stored = game_data[2]
             count_stored = game_data[3]
             temp = game_data[4]
-        stream.stop_stream()
-        stream.close()
-        wf.close()
-        p.terminate()
+        stop_stream = True
+        audio_thread.join()
         refresh_game(gm)
         game = False
         total_score = int(score * (100 * (2 - game_speed)))
