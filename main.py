@@ -2,36 +2,97 @@ import random
 import time
 import faulthandler
 import numpy as np
-
+from playsound import playsound
+import threading
 faulthandler.enable()
+import pyaudio
+import wave
 import sys
 import select
 
 
-
 def title_screen():
     print('\n\n')
-    tm = [['[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '      [][][]      ',  '[][][][][][][][][]'],
-          ['[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '[][][][][][][][][]',  '      [][][]      ',  '[][][][][][][][][]'],
-          ['      [][][]      ',  '[][][]            ',  '      [][][]      ',  '[][][]      [][][]',  '      [][][]      ',  '[][][]            '],
-          ['      [][][]      ',  '[][][]            ',  '      [][][]      ',  '[][][]      [][][]',  '      [][][]      ',  '[][][]            '],
-          ['      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
-          ['      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHH      ',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
-          ['      HHHHHH      ',  'HHHHHH            ',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  '            HHHHHH'],
-          ['      HHHHHH      ',  'HHHHHH            ',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  '            HHHHHH'],
-          ['      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH'],
-          ['      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH',  '      HHHHHH      ',  'HHHHHH      HHHHHH',  '      HHHHHH      ',  'HHHHHHHHHHHHHHHHHH']]
+    tm = [['[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '      [][][]      ',
+           '[][][][][][][][][]'],
+          ['[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '      [][][]      ',
+           '[][][][][][][][][]'],
+          ['      [][][]      ', '[][][]            ', '      [][][]      ', '[][][]      [][][]', '      [][][]      ',
+           '[][][]            '],
+          ['      [][][]      ', '[][][]            ', '      [][][]      ', '[][][]      [][][]', '      [][][]      ',
+           '[][][]            '],
+          ['      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHH            ', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           '            HHHHHH'],
+          ['      HHHHHH      ', 'HHHHHH            ', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           '            HHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHHHHHHHH', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHHHHHHHH', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH']]
     refresh_game(tm)
-    print('\n')
+    print('')
     print('by: clouds')
     print('\n')
-    print('                                                ENTER ANY KEY TO START')
-    print('\n\n\n')
-    print("Tetris ® & © 1985~2023 Tetris Holding.\nTetris logos, Tetris theme song and Tetriminos are trademarks of Tetris Holding.\nThe Tetris trade dress is owned by Tetris Holding. Licensed to The Tetris Company.\nTetris Game Design by Alexey Pajitnov.\nTetris Logo Design by Roger Dean.\nAll Rights Reserved.\nAll other trademarks are the property of their respective owners.")
+    print('                                                PRESS ENTER TO START')
+    print('\n\n')
+    print(
+        "Tetris ® & © 1985~2023 Tetris Holding.\nTetris logos, Tetris theme song and Tetriminos are trademarks of Tetris Holding.\nThe Tetris trade dress is owned by Tetris Holding. Licensed to The Tetris Company.\nTetris Game Design by Alexey Pajitnov.\nTetris Logo Design by Roger Dean.\nAll Rights Reserved.\nAll other trademarks are the property of their respective owners.")
+    wf = wave.open('title.wav', 'rb')
+    p = pyaudio.PyAudio()
+    def callback(in_data, frame_count, time_info, status):
+        data = wf.readframes(frame_count)
+        return (data, pyaudio.paContinue)
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                channels=wf.getnchannels(),
+                rate=wf.getframerate(),
+                output=True,
+                stream_callback=callback)
+    stream.start_stream()
     any_key = input('')
+    stream.stop_stream()
+    stream.close()
+    wf.close()
+    p.terminate()
     return True
 
 
+def end_screen(score):
+    print('a game by clouds.')
+    print('\n\n')
+    print('{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}')
+    print('\n\n')
+    tm = [['[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '      [][][]      ',
+           '[][][][][][][][][]'],
+          ['[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '[][][][][][][][][]', '      [][][]      ',
+           '[][][][][][][][][]'],
+          ['      [][][]      ', '[][][]            ', '      [][][]      ', '[][][]      [][][]', '      [][][]      ',
+           '[][][]            '],
+          ['      [][][]      ', '[][][]            ', '      [][][]      ', '[][][]      [][][]', '      [][][]      ',
+           '[][][]            '],
+          ['      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ', 'HHHHHHHHHHHH      ', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHH            ', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           '            HHHHHH'],
+          ['      HHHHHH      ', 'HHHHHH            ', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           '            HHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHHHHHHHH', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH'],
+          ['      HHHHHH      ', 'HHHHHHHHHHHHHHHHHH', '      HHHHHH      ', 'HHHHHH      HHHHHH', '      HHHHHH      ',
+           'HHHHHHHHHHHHHHHHHH']]
+    refresh_game(tm)
+    print('by: clouds')
+    print('\n')
+    print('                                                   {}.GAME OVER.{}')
+    print('                                             THANK YOU FOR PLAYING TETRIS')
+    print('                                                  your score was: ' + str(score))
+    print('\n')
+    playsound('game_over.mp3')
 
 
 def get_user_input_with_timeout(prompt, timeout):
@@ -318,7 +379,7 @@ def start_game(gm, tetros, something_stored, stored, count_stored, temp):
                     if not empty_left:
                         break
             # if user wants to SLAM block down
-            elif user_input == 'v':
+            elif user_input == 's':
                 while fast_empty:
                     # Check for empty space underneath
                     for row in range(len(t_matrix)):
@@ -574,6 +635,17 @@ def refresh_game(gm):
 if __name__ == '__main__':
     Return = title_screen()
     if Return:
+        wf = wave.open('tetris.wav', 'rb')
+        p = pyaudio.PyAudio()
+        def callback(in_data, frame_count, time_info, status):
+            data = wf.readframes(frame_count)
+            return (data, pyaudio.paContinue)
+        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                        channels=wf.getnchannels(),
+                        rate=wf.getframerate(),
+                        output=True,
+                        stream_callback=callback)
+        stream.start_stream()
         game_fail = False
         count_stored = 0
         global something_stored
@@ -592,7 +664,11 @@ if __name__ == '__main__':
             stored = game_data[2]
             count_stored = game_data[3]
             temp = game_data[4]
+        stream.stop_stream()
+        stream.close()
+        wf.close()
+        p.terminate()
         refresh_game(gm)
-        print('\n')
-        print('{}{}.game over.{}{}')
-        print('score: ' + str(int(score * (100 * (2 - game_speed)))))
+        game = False
+        total_score = int(score * (100 * (2 - game_speed)))
+        end_screen(total_score)
